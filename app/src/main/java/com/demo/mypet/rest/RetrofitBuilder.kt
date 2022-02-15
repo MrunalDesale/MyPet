@@ -22,7 +22,7 @@ object RetrofitBuilder {
         chain.proceed(request)
     }
 
-    private fun getRestApiService(): Retrofit {
+    fun getRestApiService(): Retrofit {
         return Retrofit.Builder()
             .client(getApiClient())
             .baseUrl(BASE_URL)
@@ -31,8 +31,7 @@ object RetrofitBuilder {
             .build()
     }
 
-
-    private fun getApiClient(): OkHttpClient {
+    fun getApiClient(): OkHttpClient {
         val logging = HttpLoggingInterceptor()
         logging.level =
             if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE

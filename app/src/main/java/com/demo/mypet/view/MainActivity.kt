@@ -4,9 +4,11 @@ import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatImageView
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.demo.mypet.R
 import com.demo.mypet.viewmodel.MainViewModel
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -27,7 +29,8 @@ class MainActivity : AppCompatActivity() {
         mainViewModel.getMyPetResponse().observe(this, {
             Glide.with(this).load(it?.message).into(ivPet)
         })
-
-        mainViewModel.getPet()
+        lifecycleScope.launch {
+            mainViewModel.getPet()
+        }
     }
 }

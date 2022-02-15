@@ -1,24 +1,43 @@
 package com.demo.mypet.rest.util
 
-import com.demo.mypet.model.MyPetModel
-import com.demo.mypet.rest.ResponseCallback
-import com.demo.mypet.rest.RetrofitBuilder
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import android.util.Log
+import com.demo.mypet.model.ResultModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import retrofit2.HttpException
+import java.io.IOException
 
 object NetworkUtil {
-    fun getPet(callback: ResponseCallback) {
-        val call = RetrofitBuilder.apiInterface.getImage()
-
-        call.enqueue(object : Callback<MyPetModel> {
-            override fun onResponse(call: Call<MyPetModel>, response: Response<MyPetModel>) {
-                callback.onResponse(response.body())
+    suspend inline fun <T> makeApiCall(
+        crossinline callFunction: suspend () -> T
+    ): ResultModel<T>? {
+        return try {
+            val successResult = withContext(Dispatchers.IO) {
+                callFunction.invoke()
             }
-
-            override fun onFailure(call: Call<MyPetModel>, t: Throwable) {
-
+            ResultModel.Success(successResult)
+        } catch (throwable: Throwable) {
+            var data = ResultModel.GenericError()
+            withContext(Dispatchers.Main) {
+                throwable.printStackTrace()
+                Log.e(
+                    "NetworkUtils",
+                    "Call error: ${throwable.localizedMessage}",
+                    throwable.cause
+                )
+                when (throwable) {
+                    is IOException -> ResultModel.NetworkError
+                    is HttpException -> {
+                        val code = throwable.code()
+                        val errorResponse = throwable.response()?.errorBody() ?: ""
+                        data = ResultModel.GenericError(code, errorResponse)
+                    }
+                    else -> {
+                        data = ResultModel.GenericError(null, null)
+                    }
+                }
             }
-        })
+            data
+        }
     }
 }
