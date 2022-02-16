@@ -1,18 +1,23 @@
 package com.demo.mypet.view
 
 import android.os.Bundle
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatImageView
-import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.demo.mypet.R
+import com.demo.mypet.repository.PetRepository
 import com.demo.mypet.viewmodel.MainViewModel
-import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
-    private val mainViewModel: MainViewModel by viewModels()
+    private lateinit var mainViewModelFactory: MainViewModel.MainViewModelFactory
+    private val mainViewModel: MainViewModel by lazy {
+        run {
+            ViewModelProvider(this, mainViewModelFactory)[MainViewModel::class.java]
+        }
+    }
+
     private lateinit var ivPet: AppCompatImageView
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,11 +31,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initViewModel() {
+        val repository = PetRepository()
+        mainViewModelFactory = MainViewModel.MainViewModelFactory(repository)
         mainViewModel.getMyPetResponse().observe(this, {
             Glide.with(this).load(it?.message).into(ivPet)
         })
-        lifecycleScope.launch {
-            mainViewModel.getPet()
-        }
+        mainViewModel.getPet()
     }
 }
